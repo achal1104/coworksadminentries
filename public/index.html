@@ -151,7 +151,7 @@ async function submit(text) {
     const j = await r.json()
     if (j.ok) result('ok', 'Entry Saved!', 'Visitor added to the Excel sheet.', j.visitor)
     else if (j.duplicate) result('warn', 'Already Scanned', 'This pass was already recorded earlier.', j.visitor)
-    else result('bad', 'Invalid QR', esc(j.error || 'Something went wrong.'))
+    else result('bad', 'Invalid QR', esc(j.error || 'Something went wrong.') + (j.received ? `<br><small style="word-break:break-all">Read: ${esc(j.received)}</small>` : ''))
   } catch { result('bad', 'Server Offline', 'Could not reach the server.') }
   busy = false; loadList()
 }
@@ -168,9 +168,9 @@ async function loadList() {
 
 $('start').onclick = async () => {
   try {
-    if (!scanner) scanner = new Html5Qrcode('reader')
+    if (!scanner) scanner = new Html5Qrcode('reader', { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE], verbose: false })
     if (scanner.isScanning) return
-    await scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 240, height: 240 } }, submit, () => {})
+    await scanner.start({ facingMode: 'environment' }, { fps: 15, aspectRatio: 1, qrbox: (w, h) => { const n = Math.floor(Math.min(w, h) * 0.8); return { width: n, height: n } }, formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE], experimentalFeatures: { useBarCodeDetectorIfSupported: true } }, submit, () => {})
     $('idle').style.display = 'none'
   } catch (e) { result('bad', 'Camera Error', esc(e?.message || e) + ' — use https / localhost, or Scan from Image.') }
 }

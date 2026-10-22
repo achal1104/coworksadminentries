@@ -208,18 +208,34 @@ async function openBook() {
   return { wb, ws, etag }
 }
 
+// Accepts: new compact QR {id,n,c,m,t}, old full QR {registrationId,name,...}, JSON surrounded by noise,
+// URL-encoded JSON, or just a plain registration ID (VIS-2026-XXXXXXX) / URL containing it.
 function parsePayload(raw) {
-  let d
-  try { d = typeof raw === 'string' ? JSON.parse(raw) : raw } catch { return null }
-  if (!d || typeof d !== 'object' || !d.registrationId) return null
   const s = (v) => (v == null ? '' : String(v).slice(0, 200))
-  return {
-    registrationId: s(d.registrationId).trim(),
-    name: s(d.name),
-    visitorCount: Number(d.visitorCount) || 1,
-    personToMeet: s(d.personToMeet),
-    visitDateTime: s(d.visitDateTime).replace('T', ' '),
+  let text = typeof raw === 'string' ? raw : raw && typeof raw === 'object' ? JSON.stringify(raw) : ''
+  text = text.replace(/^\uFEFF/, '').trim()
+  if (!text) return null
+
+  const tryJson = (t) => { try { const o = JSON.parse(t); return o && typeof o === 'object' ? o : null } catch { return null } }
+  let d = tryJson(text)
+  if (!d) { try { d = tryJson(decodeURIComponent(text)) } catch {} }
+  if (!d) { const m = text.match(/\{[\s\S]*\}/); if (m) d = tryJson(m[0]) }
+
+  if (d) {
+    const id = s(d.id ?? d.registrationId ?? d.regId ?? d.visitorId).trim()
+    if (!id) return null
+    return {
+      registrationId: id,
+      name: s(d.n ?? d.name),
+      visitorCount: Number(d.c ?? d.visitorCount ?? d.count) || 1,
+      personToMeet: s(d.m ?? d.personToMeet ?? d.meet),
+      visitDateTime: s(d.t ?? d.visitDateTime ?? d.when).replace('T', ' '),
+    }
   }
+  // Plain ID (or a URL / text containing it)
+  const m = text.match(/VIS-\d{4}-[A-Z0-9]+/i)
+  if (m) return { registrationId: m[0].toUpperCase(), name: '', visitorCount: 1, personToMeet: '', visitDateTime: '' }
+  return null
 }
 
 // Serialize writes inside one server instance
@@ -250,7 +266,7 @@ app.use(express.static(path.join(__dirname, 'public')))
 
 app.post('/api/scan', (req, res) => {
   const v = parsePayload(req.body?.qr)
-  if (!v) return res.status(400).json({ ok: false, error: 'Invalid QR – not a visitor pass.' })
+  if (!v) return res.status(400).json({ ok: false, error: 'Invalid QR – not a visitor pass.', received: String(req.body?.qr ?? '').slice(0, 120) })
   enqueue(async () => {
     const r = await addVisitor(v)
     if (r.duplicate) return res.status(409).json({ ok: false, duplicate: true, error: 'Already scanned earlier.', visitor: v })
