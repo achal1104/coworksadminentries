@@ -122,7 +122,8 @@ $('stop').innerHTML = icon('stop') + 'Stop'
 $('imgBtn').insertAdjacentHTML('afterbegin', icon('img') + 'Scan from Image')
 $('send').innerHTML = icon('check') + 'Save Entry'
 $('dl').innerHTML = icon('dl') + 'Download Excel Sheet'
-$('tip').innerHTML = icon('shield') + '<span>Camera works on https or localhost. Each Registration ID is saved only once; repeat scans are flagged.</span>'
+const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+$('tip').innerHTML = icon('shield') + `<span>${isSecure ? 'Camera works on https or localhost.' : '⚠️ Camera needs <b>https</b> or localhost — use "Scan from Image" on this connection.'} Each Registration ID is saved only once; repeat scans are flagged.</span>`
 
 let scanner = null, busy = false, lastText = '', lastAt = 0
 const row = (ic, k, v) => `<div><span class="ic">${icon(ic)}</span><span><small>${k}</small><b>${esc(v)}</b></span></div>`
@@ -178,8 +179,14 @@ $('start').onclick = async () => {
 $('stop').onclick = async () => { if (scanner?.isScanning) { await scanner.stop(); $('idle').style.display = '' } }
 $('file').onchange = async (e) => {
   const f = e.target.files[0]; if (!f) return
-  try { if (!scanner) scanner = new Html5Qrcode('reader'); submit(await scanner.scanFile(f, false)) }
-  catch { result('bad', 'No QR Found', 'Try a clearer image of the QR code.') }
+  try {
+    if (scanner?.isScanning) await scanner.stop()
+    if (!scanner) scanner = new Html5Qrcode('reader', { verbose: false })
+    const text = await scanner.scanFile(f, false)
+    submit(text)
+  } catch (err) {
+    result('bad', 'No QR Found', 'Try a clearer image of the QR code. ' + (err?.message || ''))
+  }
   e.target.value = ''
 }
 $('send').onclick = () => { const t = $('manual').value.trim(); if (t) { submit(t); $('manual').value = '' } }
