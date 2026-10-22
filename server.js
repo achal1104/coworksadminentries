@@ -163,7 +163,9 @@ async function blobStorage() {
   return {
     name: 'Vercel Blob (private) → ' + BLOB_PATH,
     async load() {
-      const r = await get(BLOB_PATH, { access: 'private', useCache: false })
+      let r
+      try { r = await get(BLOB_PATH, { access: 'private', useCache: false }) }
+      catch (e) { if (/not.?found|404/i.test(String(e?.name) + ' ' + String(e?.message))) return { buf: null, etag: null }; throw e }
       if (!r || r.statusCode === 404) return { buf: null, etag: null }
       return { buf: Buffer.from(await new Response(r.stream).arrayBuffer()), etag: r.blob.etag }
     },
@@ -273,7 +275,7 @@ app.post('/api/scan', (req, res) => {
     res.json({ ok: true, visitor: { ...v, scannedAt: r.scannedAt } })
   }).catch((e) => {
     console.error(e)
-    if (!res.headersSent) res.status(500).json({ ok: false, error: ON_VERCEL || USE_BLOB ? 'Could not save entry. Check Blob storage is connected.' : 'Could not write Excel. Is visitors.xlsx open in Excel? Close it and retry.' })
+    if (!res.headersSent) res.status(500).json({ ok: false, detail: String(e?.message || e).slice(0, 300), error: ON_VERCEL || USE_BLOB ? 'Could not save entry. Check Blob storage is connected.' : 'Could not write Excel. Is visitors.xlsx open in Excel? Close it and retry.' })
   })
 })
 

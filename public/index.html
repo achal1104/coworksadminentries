@@ -148,10 +148,11 @@ async function submit(text) {
   busy = true; lastText = text; lastAt = now
   try {
     const r = await fetch('/api/scan', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ qr: text }) })
-    const j = await r.json()
+    const j = await r.json().catch(() => ({ error: 'Server returned HTTP ' + r.status + ' (not JSON). Check /api/scan is deployed.' }))
     if (j.ok) result('ok', 'Entry Saved!', 'Visitor added to the Excel sheet.', j.visitor)
     else if (j.duplicate) result('warn', 'Already Scanned', 'This pass was already recorded earlier.', j.visitor)
-    else result('bad', 'Invalid QR', esc(j.error || 'Something went wrong.') + (j.received ? `<br><small style="word-break:break-all">Read: ${esc(j.received)}</small>` : ''))
+    else if (r.status === 400) result('bad', 'Invalid QR', esc(j.error || 'Not a visitor pass.') + (j.received ? `<br><small style="word-break:break-all">Read: ${esc(j.received)}</small>` : ''))
+    else result('bad', 'Could Not Save Entry', 'QR is valid, but the server failed to save it.<br>' + esc(j.error || 'Server error') + (j.detail ? `<br><small style="word-break:break-all">${esc(j.detail)}</small>` : ''))
   } catch { result('bad', 'Server Offline', 'Could not reach the server.') }
   busy = false; loadList()
 }
