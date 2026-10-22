@@ -11,6 +11,10 @@
     "exceljs": "^4.4.0",
     "express": "^4.21.2",
     "html5-qrcode": "^2.3.8",
-    "selfsigned": "^2.4.1"
+    "selfsigned": "^2.4.1",
+    "@vercel/blob": "^2.8.2"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
