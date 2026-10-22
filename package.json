@@ -1,0 +1,16 @@
+{
+  "name": "visitor-qr-scanner",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "start:https": "HTTPS=1 node server.js"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "express": "^4.21.2",
+    "html5-qrcode": "^2.3.8",
+    "selfsigned": "^2.4.1"
+  }
+}

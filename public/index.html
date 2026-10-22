@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Visitor Scanner · Clusterr Co-Works</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f4f6f1;--card:#fff;--ink:#0e1411;--mut:#5c665f;--line:#e2e7df;--soft:#f0f3ec;--lime:#c5f23a;--lime-d:#a6d41c;--err:#d6342b;--warn:#b7791f;--ok:#1f9d55;--shadow:0 24px 60px -20px rgba(14,20,17,.25);color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#0a0e0b;--card:#131a15;--ink:#f1f5ee;--mut:#9aa69d;--line:#26302a;--soft:#1a231d;--shadow:0 24px 60px -20px rgba(0,0,0,.7);color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+background-image:radial-gradient(circle at 15% 0%,rgba(197,242,58,.28),transparent 40%),radial-gradient(circle at 100% 100%,rgba(197,242,58,.16),transparent 40%)}
+svg{flex:none}
+.wrap{max-width:640px;margin:0 auto;padding:28px 16px 48px}
+.brand{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:20px}
+.logo{width:46px;height:46px;border-radius:14px;background:#0e1411;display:grid;place-items:center;color:var(--lime);font-weight:800;font-size:20px;letter-spacing:-1px;box-shadow:0 6px 18px -6px rgba(14,20,17,.5)}
+.brand b{display:block;font-size:17px;letter-spacing:-.2px}.brand span{font-size:12px;color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:28px;box-shadow:var(--shadow);overflow:hidden;animation:rise .5s ease;margin-bottom:18px}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.hd{background:#0e1411;color:#fff;padding:26px 28px 22px;position:relative}
+.hd:after{content:"";position:absolute;right:-30px;top:-40px;width:150px;height:150px;border-radius:50%;background:var(--lime);opacity:.9;filter:blur(2px)}
+.hd h1,.hd h2{margin:0 0 4px;font-size:26px;letter-spacing:-.6px;position:relative;z-index:1}
+.hd p{margin:0;color:#b8c4bb;font-size:14px;position:relative;z-index:1;max-width:68%}
+.bd{padding:26px 28px 30px}
+@media(max-width:560px){.bd{padding:22px 18px}.hd{padding:22px 18px}}
+.cam{position:relative;border-radius:20px;overflow:hidden;background:#0e1411;border:2px solid #0e1411;box-shadow:8px 8px 0 var(--lime);min-height:260px;display:grid;place-items:center;margin-bottom:26px}
+#reader{width:100%}
+#reader video{display:block;width:100%!important;object-fit:cover}
+.flash{position:absolute;inset:0;z-index:5;display:none;place-items:center;align-content:center;gap:6px;text-align:center;padding:16px;background:rgba(14,20,17,.88);backdrop-filter:blur(3px);color:#fff}
+.flash.show{display:grid;animation:rise .25s}
+.flash .ok{margin:0 0 6px;width:84px;height:84px}
+.flash h2{margin:0;font-size:24px;letter-spacing:-.4px}
+.flash p{margin:0;color:#b8c4bb;font-size:14px}
+.flash b{color:var(--lime);font-size:17px}
+.idle{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:10px;color:#b8c4bb;font-size:13.5px;text-align:center;padding:16px;pointer-events:none}
+.idle .ic{width:56px;height:56px;border-radius:16px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:54px;border:0;border-radius:16px;font:inherit;font-weight:700;font-size:15.5px;cursor:pointer;transition:.2s;background:var(--lime);color:#0e1411;box-shadow:0 10px 24px -10px rgba(166,212,28,.9);text-decoration:none}
+.btn:hover{transform:translateY(-2px);background:#d3ff45}
+.btn.dark{background:#0e1411;color:#fff;box-shadow:none}.btn.dark:hover{background:#222c25}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink);box-shadow:none}.btn.ghost:hover{background:var(--soft)}
+.btns{display:grid;gap:12px;margin-top:8px}.btns.two{grid-template-columns:1fr 1fr}
+
+.ic{flex:none;width:38px;height:38px;border-radius:11px;background:var(--lime);display:grid;place-items:center;color:#0e1411}
+.ctr{text-align:center;animation:rise .35s}.ctr h2{margin:0 0 6px;font-size:24px;letter-spacing:-.5px}
+.ok{width:78px;height:78px;margin:0 auto 14px;border-radius:50%;background:var(--lime);display:grid;place-items:center;color:#0e1411;animation:pop .6s cubic-bezier(.2,1.6,.4,1)}
+.ok.warn{background:#ffd98a}.ok.bad{background:#ffb4ae}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.rid{display:inline-block;margin:10px 0 18px;padding:8px 16px;border-radius:99px;background:#0e1411;color:var(--lime);font-family:ui-monospace,Menlo,monospace;font-weight:700;letter-spacing:1px;font-size:14px}
+.sum{border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-bottom:20px;text-align:left}
+.sum div{display:flex;gap:12px;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line)}
+.sum div:last-child{border:0}
+.sum small{display:block;color:var(--mut);font-size:12px}.sum b{font-size:15px;word-break:break-word}
+.note{display:flex;gap:10px;margin-top:18px;padding:12px 14px;border-radius:14px;background:var(--soft);border:1px dashed var(--line);color:var(--mut);font-size:12.5px;line-height:1.5}
+.bd h3{margin:0;font-size:17px;letter-spacing:-.2px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:14px}
+.pill{font-size:12px;font-weight:700;background:var(--lime);color:#0e1411;border-radius:99px;padding:4px 12px}
+.list{border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.item{display:flex;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.item:last-child{border:0}.item b{display:block;font-size:14.5px}.item small{color:var(--mut);font-size:12px}
+.item .t{margin-left:auto;text-align:right;white-space:nowrap}
+.empty{padding:22px;text-align:center;color:var(--mut);font-size:13.5px}
+details{margin-top:18px}summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--mut)}
+textarea{width:100%;min-height:80px;margin:10px 0;font:inherit;font-size:14px;border:1.5px solid var(--line);border-radius:14px;background:var(--soft);color:var(--ink);padding:12px;outline:0}
+textarea:focus{border-color:var(--ink);background:var(--card);box-shadow:0 0 0 4px rgba(197,242,58,.45)}
+.foot{text-align:center;font-size:12px;color:var(--mut);margin-top:18px}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><div class="logo">CC</div><div><b>Clusterr Co-Works</b><span>Visitor Management System</span></div></div>
+
+  <div class="card">
+    <div class="hd"><h1>Scan Visitor Pass</h1><p>Scan the QR code shown by the visitor. The entry is saved to Excel automatically.</p></div>
+    <div class="bd">
+      <div class="cam"><div id="reader"></div>
+        <div class="flash" id="flash" role="status" aria-live="assertive"></div>
+        <div class="idle" id="idle"><span class="ic" id="idleIc"></span><span>Press “Start Scanning” to open the camera</span></div></div>
+      <div class="btns two">
+        <button class="btn" id="start"></button>
+        <button class="btn dark" id="stop"></button>
+      </div>
+      <div class="btns"><label class="btn ghost" id="imgBtn" style="cursor:pointer"><input id="file" type="file" accept="image/*" hidden></label></div>
+      <details><summary>Camera not working? Paste QR text instead</summary>
+        <textarea id="manual" placeholder='{"registrationId":"VIS-2026-…"}'></textarea>
+        <button class="btn ghost" id="send"></button></details>
+      <div class="note" id="tip"></div>
+    </div>
+  </div>
+
+  <div class="card" id="resCard" hidden><div class="bd" id="res"></div></div>
+
+  <div class="card">
+    <div class="bd">
+      <div class="top"><h3>Today’s Entries</h3><span class="pill" id="count">0</span></div>
+      <div class="list" id="list"></div>
+      <div class="btns"><a class="btn dark" href="/download" id="dl"></a></div>
+    </div>
+  </div>
+  <div class="foot">© 2026 Clusterr Co-Works · Narhe, Pune</div>
+</div>
+<script src="/lib/html5-qrcode.min.js"></script>
+<script>
+const $ = (id) => document.getElementById(id)
+const P = {
+  qr:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM20 14v3M14 20h3M20 20h1"/>',
+  user:'<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  brief:'<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+  cal:'<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+  check:'<path d="M20 6 9 17l-5-5"/>', alert:'<circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>',
+  dl:'<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>',
+  stop:'<rect x="6" y="6" width="12" height="12" rx="2"/>',
+  img:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>',
+  shield:'<path d="M20 13c0 5-3.5 7.5-7.7 8.9a1 1 0 0 1-.6 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.2-2.7a1.2 1.2 0 0 1 1.6 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>'
+}
+const icon = (n, s = 18) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[n]}</svg>`
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))
+$('idleIc').innerHTML = icon('qr', 28)
+$('start').innerHTML = icon('qr') + 'Start Scanning'
+$('stop').innerHTML = icon('stop') + 'Stop'
+$('imgBtn').insertAdjacentHTML('afterbegin', icon('img') + 'Scan from Image')
+$('send').innerHTML = icon('check') + 'Save Entry'
+$('dl').innerHTML = icon('dl') + 'Download Excel Sheet'
+$('tip').innerHTML = icon('shield') + '<span>Camera works on https or localhost. Each Registration ID is saved only once; repeat scans are flagged.</span>'
+
+let scanner = null, busy = false, lastText = '', lastAt = 0
+const row = (ic, k, v) => `<div><span class="ic">${icon(ic)}</span><span><small>${k}</small><b>${esc(v)}</b></span></div>`
+
+function result(kind, title, sub, v) {
+  $('resCard').hidden = false
+  const ic = kind === 'ok' ? 'check' : 'alert'
+  $('res').innerHTML = `<div class="ctr"><div class="ok ${kind}">${icon(ic, 40)}</div><h2>${title}</h2>
+    <p style="margin:0;color:var(--mut)">${sub}</p>
+    ${v ? `<div class="rid">${esc(v.registrationId)}</div>
+    <div class="sum">${row('user','Visitor',`${v.name} (${v.visitorCount})`)}${row('brief','Meeting',v.personToMeet)}${row('cal','Visit Time',v.visitDateTime)}</div>` : ''}</div>`
+  const t = { ok:'Scanned Successfully!', warn:'Already Scanned', bad:title }[kind]
+  const f = $('flash')
+  f.innerHTML = `<div class="ok ${kind}">${icon(ic, 44)}</div><h2>${t}</h2>` + (v ? `<b>${esc(v.name)} (${esc(v.visitorCount)})</b><p>${kind==='ok' ? 'Saved to Excel · ' : ''}Meeting ${esc(v.personToMeet)}</p>` : `<p>${sub}</p>`)
+  f.classList.add('show'); clearTimeout(f._t); f._t = setTimeout(() => f.classList.remove('show'), 2500)
+  $('resCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  if (kind === 'ok') navigator.vibrate?.(120)
+}
+
+async function submit(text) {
+  const now = Date.now()
+  if (busy || (text === lastText && now - lastAt < 4000)) return
+  busy = true; lastText = text; lastAt = now
+  try {
+    const r = await fetch('/api/scan', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ qr: text }) })
+    const j = await r.json()
+    if (j.ok) result('ok', 'Entry Saved!', 'Visitor added to the Excel sheet.', j.visitor)
+    else if (j.duplicate) result('warn', 'Already Scanned', 'This pass was already recorded earlier.', j.visitor)
+    else result('bad', 'Invalid QR', esc(j.error || 'Something went wrong.'))
+  } catch { result('bad', 'Server Offline', 'Could not reach the server.') }
+  busy = false; loadList()
+}
+
+async function loadList() {
+  try {
+    const j = await (await fetch('/api/visitors')).json()
+    $('count').textContent = j.rows.length
+    $('list').innerHTML = j.rows.length ? j.rows.slice(0, 20).map((r) =>
+      `<div class="item"><span class="ic">${icon('user')}</span><span><b>${esc(r[2])} (${esc(r[3])})</b><small>${esc(r[4])}</small></span><span class="t"><small>${esc(r[6])}</small></span></div>`).join('')
+      : '<div class="empty">No entries yet. Scan a visitor pass to begin.</div>'
+  } catch {}
+}
+
+$('start').onclick = async () => {
+  try {
+    if (!scanner) scanner = new Html5Qrcode('reader')
+    if (scanner.isScanning) return
+    await scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 240, height: 240 } }, submit, () => {})
+    $('idle').style.display = 'none'
+  } catch (e) { result('bad', 'Camera Error', esc(e?.message || e) + ' — use https / localhost, or Scan from Image.') }
+}
+$('stop').onclick = async () => { if (scanner?.isScanning) { await scanner.stop(); $('idle').style.display = '' } }
+$('file').onchange = async (e) => {
+  const f = e.target.files[0]; if (!f) return
+  try { if (!scanner) scanner = new Html5Qrcode('reader'); submit(await scanner.scanFile(f, false)) }
+  catch { result('bad', 'No QR Found', 'Try a clearer image of the QR code.') }
+  e.target.value = ''
+}
+$('send').onclick = () => { const t = $('manual').value.trim(); if (t) { submit(t); $('manual').value = '' } }
+loadList()
+</script>
+</body>
+</html>
