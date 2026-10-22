@@ -168,15 +168,27 @@ async function loadList() {
   } catch {}
 }
 
-$('start').onclick = async () => {
+async function startScanner() {
   try {
-    if (!scanner) scanner = new Html5Qrcode('reader', { formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE], verbose: false })
-    if (scanner.isScanning) return
-    await scanner.start({ facingMode: 'environment' }, { fps: 15, aspectRatio: 1, qrbox: (w, h) => { const n = Math.floor(Math.min(w, h) * 0.8); return { width: n, height: n } }, formatsToSupport: [Html5QrcodeSupportedFormats.QR_CODE], experimentalFeatures: { useBarCodeDetectorIfSupported: true } }, submit, () => {})
+    if (scanner) {
+      try { if (scanner.isScanning) await scanner.stop() } catch {}
+      try { await scanner.clear() } catch {}
+      scanner = null
+    }
+    scanner = new Html5Qrcode('reader', { verbose: false })
+    await scanner.start(
+      { facingMode: 'environment' },
+      { fps: 15, aspectRatio: 1, qrbox: (w, h) => { const n = Math.floor(Math.min(w, h) * 0.8); return { width: n, height: n } }, experimentalFeatures: { useBarCodeDetectorIfSupported: true } },
+      submit, () => {}
+    )
     $('idle').style.display = 'none'
   } catch (e) { result('bad', 'Camera Error', esc(e?.message || e) + ' — use https / localhost, or Scan from Image.') }
 }
-$('stop').onclick = async () => { if (scanner?.isScanning) { await scanner.stop(); $('idle').style.display = '' } }
+$('start').onclick = startScanner
+$('stop').onclick = async () => {
+  try { if (scanner?.isScanning) await scanner.stop() } catch {}
+  $('idle').style.display = ''
+}
 $('file').onchange = async (e) => {
   const f = e.target.files[0]; if (!f) return
   try {
