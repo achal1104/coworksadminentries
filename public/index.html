@@ -126,6 +126,8 @@ const isSecure = location.protocol === 'https:' || location.hostname === 'localh
 $('tip').innerHTML = icon('shield') + `<span>${isSecure ? 'Camera works on https or localhost.' : '⚠️ Camera needs <b>https</b> or localhost — use "Scan from Image" on this connection.'} Each Registration ID is saved only once; repeat scans are flagged.</span>`
 
 let scanner = null, busy = false, lastText = '', lastAt = 0
+// html5-qrcode has no isScanning property; use getState(): 2 = scanning, 3 = paused
+const camOn = (sc) => !!sc && [2, 3].includes(sc.getState())
 const row = (ic, k, v) => `<div><span class="ic">${icon(ic)}</span><span><small>${k}</small><b>${esc(v)}</b></span></div>`
 
 function result(kind, title, sub, v) {
@@ -171,7 +173,7 @@ async function loadList() {
 async function startScanner() {
   try {
     if (scanner) {
-      try { if (scanner.isScanning) await scanner.stop() } catch {}
+      try { if (camOn(scanner)) await scanner.stop() } catch {}
       try { await scanner.clear() } catch {}
       scanner = null
     }
@@ -186,13 +188,13 @@ async function startScanner() {
 }
 $('start').onclick = startScanner
 $('stop').onclick = async () => {
-  try { if (scanner?.isScanning) await scanner.stop() } catch {}
+  try { if (camOn(scanner)) await scanner.stop() } catch {}
   $('idle').style.display = ''
 }
 $('file').onchange = async (e) => {
   const f = e.target.files[0]; if (!f) return
   try {
-    if (scanner?.isScanning) await scanner.stop()
+    if (camOn(scanner)) await scanner.stop()
     if (!scanner) scanner = new Html5Qrcode('reader', { verbose: false })
     const text = await scanner.scanFile(f, false)
     submit(text)

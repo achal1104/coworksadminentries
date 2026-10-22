@@ -128,7 +128,8 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PORT = process.env.PORT || 3000
 const ON_VERCEL = !!process.env.VERCEL
-const USE_BLOB = !!process.env.BLOB_READ_WRITE_TOKEN
+// New private Blob stores authenticate via OIDC + BLOB_STORE_ID (no token); older ones use BLOB_READ_WRITE_TOKEN
+const USE_BLOB = !!(process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID)
 const FILE = path.join(__dirname, 'data', 'visitors.xlsx')
 const BLOB_PATH = 'visitors.xlsx'
 const SHEET = 'Visitors'
@@ -144,7 +145,13 @@ const COLUMNS = [
 
 /* ---------- Storage: Vercel Blob (online) or local file (your computer) ---------- */
 // load() -> { buf: Buffer|null, etag }      save(buf, etag) -> throws { conflict:true } if file changed meanwhile
-const storage = USE_BLOB ? await blobStorage() : fileStorage()
+const storage = USE_BLOB ? await blobStorage() : ON_VERCEL ? missingBlobStorage() : fileStorage()
+
+// Vercel's filesystem is read-only, so without Blob the Excel file can never be saved. Fail with a clear message.
+function missingBlobStorage() {
+  const fail = async () => { throw new Error('Vercel Blob is not connected (no BLOB_STORE_ID / BLOB_READ_WRITE_TOKEN). In Vercel: Storage -> create a PRIVATE Blob store -> connect it to this project -> Redeploy.') }
+  return { name: 'NOT CONFIGURED (Vercel Blob missing)', load: fail, save: fail }
+}
 
 function fileStorage() {
   return {
